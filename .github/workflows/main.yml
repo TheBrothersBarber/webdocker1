@@ -1,23 +1,26 @@
-name: Docker Image CI
+name: Publish Docker Image
 
 on:
   push:
     branches:
-      - main
+      - main  # Ejecutar cuando se hace push en la rama 'main'
+  workflow_dispatch:  # Permitir ejecución manual del flujo de trabajo
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Check out the repository
+        uses: actions/checkout@v2
 
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Build and tag Docker image
-      run: docker build . -t ${{ secrets.DOCKER_USERNAME }}/my-docker-app:latest
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-    - name: Push Docker image to Docker Hub
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/my-docker-app:latest
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
